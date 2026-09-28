@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ゆめ掲示板（試作）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEEBF5;
+  --surface: #F8F6FC;
+  --ink: #231B3A;
+  --muted: #645C7E;
+  --line: #D2CBE3;
+  --field-line: #8A82A6;
+  --moon: #B87700;
+  --btn-bg: #231B3A;
+  --btn-ink: #F8F6FC;
+  --focus: #4B3FA8;
+  --danger: #A82B47;
+  --serif: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15122A;
+    --surface: #1E1A38;
+    --ink: #ECE8F8;
+    --muted: #A29BBF;
+    --line: #2E2950;
+    --field-line: #6D6690;
+    --moon: #F2C14E;
+    --btn-bg: #ECE8F8;
+    --btn-ink: #15122A;
+    --focus: #B4A9FF;
+    --danger: #FF8FA6;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15122A;
+  --surface: #1E1A38;
+  --ink: #ECE8F8;
+  --muted: #A29BBF;
+  --line: #2E2950;
+  --field-line: #6D6690;
+  --moon: #F2C14E;
+  --btn-bg: #ECE8F8;
+  --btn-ink: #15122A;
+  --focus: #B4A9FF;
+  --danger: #FF8FA6;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 44rem; margin: 0 auto; padding: 0 1.1rem 4rem; }
+
+/* header */
+.top {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
+  padding: 2rem 0 1.4rem; border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: .8rem; }
+.brand svg { flex: none; width: 2.6rem; height: 2.6rem; color: var(--moon); }
+.brand svg path { fill: currentColor; }
+h1 {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.9rem, 7vw, 2.6rem); line-height: 1.15; margin: 0; letter-spacing: .06em;
+}
+.tagline { margin: .35rem 0 0; color: var(--muted); font-size: .92rem; }
+.auth { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; justify-content: flex-end; padding-top: .3rem; }
+.who { font-size: .9rem; font-weight: 700; word-break: break-all; }
+
+/* buttons */
+button { font-family: inherit; }
+.btn {
+  font: inherit; font-weight: 700; font-size: .95rem; line-height: 1.2;
+  padding: .7rem 1.2rem; min-height: 2.75rem;
+  border-radius: .4rem; border: 1.5px solid var(--ink); cursor: pointer;
+  background: transparent; color: var(--ink);
+}
+.btn.primary { background: var(--btn-bg); color: var(--btn-ink); }
+.btn.small { padding: .45rem .85rem; min-height: 2.25rem; font-size: .85rem; }
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--focus); outline-offset: 2px;
+}
+
+/* compose */
+.compose { padding: 1.4rem 0 0; }
+.compose-form {
+  margin-top: 1rem; padding: 1.25rem; background: var(--surface);
+  border: 1px solid var(--line); border-radius: .5rem;
+}
+.field { margin-bottom: 1.1rem; }
+.field label { display: block; font-weight: 700; font-size: .92rem; margin-bottom: .3rem; }
+.field .hint { font-weight: 400; color: var(--muted); font-size: .82rem; }
+.field input[type="text"], .field textarea {
+  width: 100%; font: inherit; font-size: 1rem; color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--field-line); border-radius: .3rem; padding: .6rem .75rem;
+}
+.field textarea { min-height: 10rem; resize: vertical; line-height: 1.75; }
+.field [aria-invalid="true"] { border-color: var(--danger); }
+.err { color: var(--danger); font-size: .85rem; margin: .3rem 0 0; min-height: 0; }
+.count-line { display: flex; justify-content: space-between; gap: 1rem; }
+.counter { color: var(--muted); font-size: .8rem; margin: .3rem 0 0; white-space: nowrap; }
+.posting-as { margin: 0 0 1.1rem; font-size: .92rem; }
+.form-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+
+/* controls */
+.controls { padding: 1.6rem 0 .4rem; display: flex; flex-direction: column; gap: .8rem; }
+.seg { display: flex; gap: 1.4rem; border-bottom: 1px solid var(--line); }
+.seg button {
+  background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px;
+  padding: .5rem .1rem; font: inherit; font-weight: 700; font-size: 1.02rem;
+  color: var(--muted); cursor: pointer; min-height: 2.75rem;
+}
+.seg button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--moon); }
+.periods { display: flex; gap: .5rem; flex-wrap: wrap; }
+.periods button {
+  font: inherit; font-size: .88rem; padding: .35rem .95rem; min-height: 2.25rem;
+  border: 1.5px solid var(--field-line); border-radius: 2rem; background: transparent;
+  color: var(--ink); cursor: pointer;
+}
+.periods button[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
+
+/* posts */
+.posts { list-style: none; margin: 0; padding: 0; }
+.post {
+  display: grid; grid-template-columns: 3rem 1fr; column-gap: 1rem;
+  padding: 1.3rem 0; border-bottom: 1px solid var(--line);
+}
+.post.ranked { grid-template-columns: 2.3rem 3rem 1fr; column-gap: .7rem; }
+.rank {
+  font-family: var(--serif); font-weight: 700; font-size: 1.7rem; line-height: 1.3;
+  text-align: center; color: var(--muted);
+}
+.rank.top { color: var(--ink); }
+.like {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: .05rem;
+  background: none; border: 0; border-radius: .4rem; padding: .35rem 0;
+  min-width: 3rem; min-height: 3.5rem; cursor: pointer; color: var(--muted); font-size: .85rem; line-height: 1.3;
+}
+.like svg { width: 1.6rem; height: 1.6rem; }
+.like svg path { fill: none; }
+.like[aria-pressed="true"] { color: var(--moon); }
+.like[aria-pressed="true"] svg path { fill: currentColor; }
+.like[aria-pressed="true"] .num { color: var(--ink); font-weight: 700; }
+.post-main { min-width: 0; }
+.post h2 {
+  font-family: var(--serif); font-weight: 700; font-size: 1.2rem; line-height: 1.5;
+  margin: 0; overflow-wrap: anywhere;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 0 .9rem; margin-top: .15rem; font-size: .82rem; color: var(--muted); }
+.meta .name { color: var(--ink); font-weight: 700; }
+.body {
+  margin: .6rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere;
+  line-height: 1.9; max-width: 38rem;
+}
+.body.clamped {
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+.actions { margin-top: .35rem; display: flex; flex-wrap: wrap; gap: 0 1.1rem; }
+.linkbtn {
+  background: none; border: 0; padding: .5rem 0; font: inherit; font-size: .85rem;
+  color: var(--muted); text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}
+.linkbtn.warn { color: var(--danger); }
+
+.empty { padding: 2.5rem 0; color: var(--muted); }
+.empty p { margin: 0 0 1rem; }
+
+footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+footer p { margin: 0 0 .8rem; max-width: 36rem; }
+
+/* dialog + toast */
+dialog {
+  border: 1px solid var(--line); border-radius: .6rem; background: var(--surface); color: var(--ink);
+  padding: 0; width: calc(100% - 2rem); max-width: 22rem;
+}
+dialog::backdrop { background: rgba(20, 15, 40, .6); }
+.dlg-in { padding: 1.4rem; }
+.dlg-in h3 { font-family: var(--serif); font-size: 1.25rem; margin: 0 0 .3rem; }
+.dlg-in p { margin: 0 0 1rem; color: var(--muted); font-size: .88rem; }
+.toast-wrap {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); pointer-events: none; z-index: 20;
+}
+.toast {
+  background: var(--btn-bg); color: var(--btn-ink); padding: .65rem 1.1rem; border-radius: .4rem;
+  font-size: .92rem; font-weight: 500; max-width: 26rem; text-align: center;
+  opacity: 0; transition: opacity .2s;
+}
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+/* names + avatars */
+.namebtn {
+  background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--ink);
+  text-decoration: underline; text-decoration-style: dotted; text-underline-offset: .22em;
+  cursor: pointer; text-align: left;
+}
+.avatar {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 2.4rem; height: 2.4rem; border-radius: 50%; color: #fff; font-weight: 700;
+  font-size: 1rem; line-height: 1; user-select: none;
+}
+.avatar.sm { width: 1.8rem; height: 1.8rem; font-size: .8rem; }
+.avatar.lg { width: 4.2rem; height: 4.2rem; font-size: 1.7rem; font-family: var(--serif); }
+.meta { align-items: center; }
+.sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* profile page */
+.profile { padding: 1.4rem 0 0; border-bottom: 1px solid var(--line); }
+.profile-head { display: flex; align-items: center; gap: 1rem; margin-top: .5rem; padding-bottom: 1.3rem; }
+.profile h2 { font-family: var(--serif); font-size: 1.7rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
+.profile h2:focus { outline: none; }
+.stats { margin: .2rem 0 0; color: var(--muted); font-size: .9rem; display: flex; flex-wrap: wrap; gap: 0 1rem; }
+.self-note { margin: .1rem 0 0; font-size: .85rem; color: var(--muted); }
+
+/* comment button on posts */
+.actions { align-items: center; }
+.cbtn {
+  display: inline-flex; align-items: center; gap: .4rem; background: none; border: 0;
+  padding: .4rem .1rem; min-height: 2.25rem; font: inherit; font-size: .9rem; color: var(--ink); cursor: pointer;
+}
+.cbtn svg { width: 1.35rem; height: 1.35rem; }
+.cbtn svg path { fill: none; }
+
+/* comment popup (bottom sheet on phones) */
+body.lock { overflow: hidden; }
+dialog.sheet { max-width: 36rem; width: calc(100% - 2rem); max-height: min(86vh, 46rem); overflow: hidden; }
+dialog.sheet[open] { display: flex; flex-direction: column; }
+.sheet-head {
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+  padding: .5rem .6rem .5rem 1.1rem; border-bottom: 1px solid var(--line);
+}
+.sheet-head h3 { font-family: var(--serif); font-size: 1.15rem; margin: 0; }
+.sheet-head h3:focus { outline: none; }
+.iconbtn {
+  background: none; border: 0; color: var(--ink); width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.sheet-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 1rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+}
+.sheet-ctx { margin: 0 0 .9rem; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+.csort { display: flex; gap: .5rem; margin-bottom: 1.1rem; }
+.csort button {
+  font: inherit; font-size: .85rem; padding: .3rem .9rem; min-height: 2.25rem;
+  border: 1.5px solid var(--field-line); border-radius: 2rem; background: transparent;
+  color: var(--ink); cursor: pointer;
+}
+.csort button[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
+.cform { display: flex; gap: .8rem; align-items: flex-start; margin-bottom: 1rem; }
+.cform-main { flex: 1; min-width: 0; }
+.cform textarea {
+  width: 100%; font: inherit; font-size: 1rem; line-height: 1.6; color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--field-line); border-radius: .3rem; padding: .5rem .7rem; min-height: 3.2rem; resize: vertical;
+}
+.cform-foot { display: flex; justify-content: space-between; align-items: center; gap: .7rem; margin-top: .45rem; flex-wrap: wrap; }
+.cform-foot .hint { font-size: .8rem; color: var(--muted); margin: 0; }
+.rform { margin: .5rem 0 .3rem; }
+.rform .cform-foot { justify-content: flex-end; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.clist, .replies { list-style: none; margin: 0; padding: 0; }
+.cm { display: flex; gap: .8rem; padding: .75rem 0; }
+.cm-main { flex: 1; min-width: 0; }
+.cm-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .7rem; font-size: .82rem; color: var(--muted); }
+.cm-meta .cname { color: var(--ink); font-weight: 700; }
+.cm-text { margin: .15rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; }
+.cm-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0 1rem; margin-top: .1rem; }
+.clike {
+  display: inline-flex; align-items: center; gap: .35rem; background: none; border: 0; color: var(--muted);
+  font: inherit; font-size: .85rem; padding: .4rem .5rem .4rem 0; min-height: 2.25rem; cursor: pointer;
+}
+.clike svg { width: 1.15rem; height: 1.15rem; }
+.clike svg path { fill: none; }
+.clike[aria-pressed="true"] { color: var(--moon); }
+.clike[aria-pressed="true"] svg path { fill: currentColor; }
+.clike[aria-pressed="true"] .num { color: var(--ink); font-weight: 700; }
+.reply-toggle {
+  display: inline-flex; align-items: center; background: none; border: 0; color: var(--focus);
+  font: inherit; font-weight: 700; font-size: .88rem; padding: .4rem 0; min-height: 2.25rem; cursor: pointer;
+}
+.empty-c { color: var(--muted); padding: 1.2rem 0; margin: 0; }
+@media (max-width: 40rem) {
+  dialog.sheet {
+    width: 100%; max-width: 100%; margin: auto 0 0 0; max-height: 88vh;
+    border-radius: 1rem 1rem 0 0; border-bottom: 0;
+  }
+}
+@supports (height: 1dvh) {
+  @media (max-width: 40rem) { dialog.sheet { max-height: 88dvh; } }
+}
+
+[hidden] { display: none !important; }
+
+@media (max-width: 30rem) {
+  .top { flex-direction: column; gap: .9rem; }
+  .auth { justify-content: flex-start; padding-top: 0; }
+  .post { column-gap: .7rem; }
+  .post.ranked { grid-template-columns: 1.9rem 2.8rem 1fr; column-gap: .5rem; }
+  .rank { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <h1>ゆめ掲示板</h1>
+      </div>
+      <p class="tagline">見た夢を、そのまま置いていく場所。</p>
+    </div>
+    <div class="auth" id="auth"></div>
+  </header>
+
+  <section class="compose" id="compose" aria-label="夢を投稿する">
+    <button type="button" class="btn primary" id="toggleForm" aria-expanded="false" aria-controls="postForm">夢を書く</button>
+    <form class="compose-form" id="postForm" hidden novalidate>
+      <p class="posting-as" id="postingAs" hidden></p>
+      <div class="field" id="nameField">
+        <label for="fName">名前 <span class="hint">（空欄なら「名無しさん」）</span></label>
+        <input type="text" id="fName" maxlength="20" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="fTitle">タイトル</label>
+        <input type="text" id="fTitle" maxlength="40" autocomplete="off" aria-describedby="titleErr">
+        <p class="err" id="titleErr" role="alert"></p>
+      </div>
+      <div class="field">
+        <label for="fBody">夢の内容 <span class="hint">（実名・住所など、個人が特定できる情報は書かないでください）</span></label>
+        <textarea id="fBody" maxlength="2000" aria-describedby="bodyErr"></textarea>
+        <div class="count-line">
+          <p class="err" id="bodyErr" role="alert"></p>
+          <p class="counter" id="counter">0 / 2000</p>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">投稿する</button>
+        <button type="button" class="btn" id="cancelForm">キャンセル</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="profile" id="profile" hidden aria-label="ユーザーのページ"></section>
+
+  <section class="controls" aria-label="表示の切り替え" id="listTop">
+    <div class="seg" role="group" aria-label="並び順">
+      <button type="button" id="modeNew" aria-pressed="true">新着</button>
+      <button type="button" id="modeRank" aria-pressed="false">ランキング</button>
+    </div>
+    <div class="periods" role="group" aria-label="ランキングの期間" id="periods" hidden>
+      <button type="button" data-period="day" aria-pressed="true">日間</button>
+      <button type="button" data-period="week" aria-pressed="false">週間</button>
+      <button type="button" data-period="all" aria-pressed="false">全期間</button>
+    </div>
+  </section>
+
+  <main>
+    <ol class="posts" id="posts"></ol>
+    <div class="empty" id="empty" hidden></div>
+  </main>
+
+  <footer>
+    <p>これは試作版です。投稿やいいねはこのブラウザにだけ保存され、他の人には見えません。</p>
+    <p>夢の内容には、怖い描写や生々しい描写が含まれることがあります。見たくない投稿は「通報」で非表示にできます。</p>
+    <button type="button" class="linkbtn" id="resetDemo">サンプルデータに戻す</button>
+  </footer>
+</div>
+
+<dialog id="loginDlg" aria-labelledby="loginTitle">
+  <div class="dlg-in">
+    <h3 id="loginTitle">ログイン</h3>
+    <p>試作版なので、パスワードなしで名前だけ決めて使えます。</p>
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="lName">ユーザー名</label>
+        <input type="text" id="lName" maxlength="20" autocomplete="off" aria-describedby="lErr">
+        <p class="err" id="lErr" role="alert"></p>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">ログインする</button>
+        <button type="button" class="btn" id="loginCancel">キャンセル</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="cDlg" class="sheet" aria-labelledby="cTitle">
+  <div class="sheet-head">
+    <h3 id="cTitle" tabindex="-1">コメント</h3>
+    <button type="button" class="iconbtn" id="cClose" aria-label="閉じる">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body" id="cBody">
+    <p class="sheet-ctx" id="cCtx"></p>
+    <div class="csort" role="group" aria-label="コメントの並び順">
+      <button type="button" data-sort="top" aria-pressed="true">人気順</button>
+      <button type="button" data-sort="new" aria-pressed="false">新しい順</button>
+    </div>
+    <form class="cform" id="cForm" novalidate>
+      <span id="cAvatar"></span>
+      <div class="cform-main">
+        <label for="cInput" class="sr">コメントを追加</label>
+        <textarea id="cInput" maxlength="500" rows="2" placeholder="コメントを追加…"></textarea>
+        <div class="cform-foot">
+          <p class="hint" id="cHint"></p>
+          <button type="submit" class="btn primary small" id="cSubmit" disabled>コメントする</button>
+        </div>
+      </div>
+    </form>
+    <ul class="clist" id="cList"></ul>
+    <p class="empty-c" id="cEmpty" hidden>まだコメントがありません。最初のコメントを書いてみましょう。</p>
+  </div>
+</dialog>
+
+<div class="toast-wrap"><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (s) { return document.querySelector(s); };
+  var HOUR = 3600000, DAY = 86400000;
+  var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  var BUBBLE = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  var PALETTE = ['#5B4FC4', '#2F7D6B', '#B5482F', '#8A3F8F', '#2C6FA8', '#8C6A12'];
+
+  /* ---------- storage (falls back to memory if the browser blocks it) ---------- */
+  var store = {
+    get: function (k, fb) {
+      try { var v = window.localStorage.getItem(k); return v === null ? fb : JSON.parse(v); }
+      catch (e) { return fb; }
+    },
+    set: function (k, v) {
+      try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* keep in memory only */ }
+    }
+  };
+
+  /* ---------- helpers ---------- */
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    var p = props || {};
+    Object.keys(p).forEach(function (k) {
+      var v = p[k];
+      if (v === false || v === null || v === undefined) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.indexOf('on') === 0) el.addEventListener(k.slice(2), v);
+      else if (v === true) el.setAttribute(k, '');
+      else el.setAttribute(k, v);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c === null || c === undefined || c === false) continue;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+
+  function hashId(str) {
+    var x = 2166136261;
+    for (var i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619); }
+    var n = x >>> 0;
+    var chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = '';
+    for (var j = 0; j < 6; j++) {
+      n ^= n << 13; n ^= n >>> 17; n ^= n << 5; n = n >>> 0;
+      out += chars[n % chars.length];
+    }
+    return out;
+  }
+  function anonId(u, ts) {
+    var d = new Date(ts);
+    return hashId(u + '|' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate());
+  }
+
+  function ago(ts) {
+    var s = Math.max(0, (Date.now() - ts) / 1000);
+    if (s < 60) return 'たった今';
+    var m = s / 60; if (m < 60) return Math.floor(m) + '分前';
+    var hr = m / 60; if (hr < 24) return Math.floor(hr) + '時間前';
+    var d = hr / 24; if (d < 30) return Math.floor(d) + '日前';
+    var dt = new Date(ts);
+    return dt.getFullYear() + '/' + (dt.getMonth() + 1) + '/' + dt.getDate();
+  }
+  function timeEl(ts) {
+    return h('time', { datetime: new Date(ts).toISOString(), title: new Date(ts).toLocaleString('ja-JP'), text: ago(ts) });
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+
+  function focusFk(k) {
+    var el = document.querySelector('[data-fk="' + k + '"]');
+    if (el) el.focus();
+  }
+
+  function colorFor(key) {
+    var n = 0;
+    for (var i = 0; i < key.length; i++) n = (n * 31 + key.charCodeAt(i)) >>> 0;
+    return PALETTE[n % PALETTE.length];
+  }
+  function ukey(o) { return o.user ? 'u:' + o.name : 'a:' + o.aid; }
+  function avatar(name, key, size) {
+    var el = h('span', { class: 'avatar' + (size ? ' ' + size : ''), 'aria-hidden': 'true', text: Array.from(name || '?')[0] });
+    el.style.background = colorFor(key);
+    return el;
+  }
+
+  /* ---------- sample data ---------- */
+  function mk(id, name, aid, isUser, text, likes, ts, replies) {
+    return { id: id, text: text, name: name, aid: aid, uid: 'seed', user: isUser, ts: ts, likes: likes, replies: replies || [] };
+  }
+  function seed() {
+    var now = Date.now();
+    return [
+      {
+        id: 's1', title: '体に穴があく病気だった',
+        body: '体が痛くて服を脱ぐと、左の首のあたりにカエルみたいな膜が膨らんでいた。力を入れると膨らんで痛む。ハサミで切って大きな絆創膏を貼ったけど、左の太ももとお腹の左側にも同じものがあった。\n\n膜の下は、スタンプラリーのハンコくらいの綺麗な円形の穴。中は肉じゃなくて、ドラえもんのタイムマシンの空間みたいな、なんとも言えない感じ。液体でもない。そこに白いえのきみたいなものが6束くらい生えていた。\n\nお母さんに救急車を呼んでと頼んでも「呼ばなくてもいいんじゃない？」と取り合ってくれず、自分で電話することに。家を出ようとすると、兄っぽい知らない人に邪魔された。やっと外で電話がつながっても、こちらの声だけ届かない。それでも住所を言い続けたところで目が覚めた。',
+        name: '名無しさん', aid: 'Kq7mPd', uid: 'seed', user: false, ts: now - 2 * HOUR, likes: 14,
+        comments: [
+          mk('c1', 'よふかし', '', true, 'えのきが6束、っていう数字の細かさが逆に怖い。', 7, now - HOUR)
+        ]
+      },
+      {
+        id: 's2', title: '札幌の地下鉄に、存在しない路線が4本増えていた',
+        body: '高校の頃に使っていた札幌の地下鉄のホームで、電車を待っていた。地下鉄なのに外の景色が見えて、ホームはジェットコースターの乗り場みたいに半透明の覆いがかかっていた。路線は本当は3本のはずなのに、なぜか4本増えて7本になっていて、その1本は「秋田なんとか線」。夢の中では変だと思わなかった。\n\n乗ったら南北線の大通駅で、いつの間にか一人。ホームが異様に暗くて、瞬きしたら元の明るさに戻った。各駅停車のはずなのに知らない駅を通過した。降りたら改札が2回続いていて、急に「これからバイトに行くんだ」と思い込んだ。駅を出ると、電車がビッグサンダー・マウンテンの螺旋みたいにありえない角度で登っていた。',
+        name: '名無しさん', aid: 'Wz4hRt', uid: 'seed', user: false, ts: now - 3 * DAY, likes: 23,
+        comments: [
+          mk('c2', 'ねむり', '', true, '7路線あるのに、そこだけ普通に受け入れてるの分かる。夢の中って疑わないよね。', 12, now - 2 * DAY, [
+            mk('r1', '名無しさん', 'Xy2aBc', false, '改札が2回続くところも、なぜか自然に通ってしまう感じ。', 3, now - 2 * DAY + 3 * HOUR),
+            mk('r2', 'よふかし', '', true, '@ねむり 疑わない夢ほど、あとから怖くなるよね。', 2, now - DAY)
+          ]),
+          mk('c3', '名無しさん', 'Vm5eTq', false, 'ビッグサンダー・マウンテンの螺旋を登る電車、見てみたい。', 5, now - DAY)
+        ]
+      },
+      {
+        id: 's3', title: '外国の車で「まずいもの」を運んで、札幌の店で逮捕された',
+        body: '後ろにタイヤがついた大きな車に乗っていて、そこは日本じゃなかった。自分は「まずいもの」を運んでいた。場面が飛んで、札幌駅と大通駅の間の地下歩行空間にある店へ。たぶんそのまずいものを換金するためだった。店に入ると知らない人が二人いて、換金できたかどうかは分からないまま、店を出るときにその二人に押さえられて、逮捕されたような感じで終わった。',
+        name: '名無しさん', aid: 'Bn8yEs', uid: 'seed', user: false, ts: now - 5 * DAY, likes: 6,
+        comments: []
+      },
+      {
+        id: 's4', title: 'テスト当日なのに、教室が知らない校舎だった',
+        body: '朝、制服を着て学校に行ったら、廊下の作りが全然違う。教室を探して階段を上がるたびに、階が増えていく。ようやく席に着いたらテスト用紙が真っ白で、時計だけがやけに大きな音で動いていた。',
+        name: 'ねむり', aid: '', uid: 'seed', user: true, ts: now - 12 * DAY, likes: 31,
+        comments: [
+          mk('c4', '名無しさん', 'Jr8dNw', false, '階が増えていく系、本当によく見る。', 4, now - 10 * DAY)
+        ]
+      },
+      {
+        id: 's5', title: '空を飛べたのに、電線が全部見えていた',
+        body: '腕を少し広げただけで体が浮かんで、街の上をゆっくり飛べた。気持ちいいのに、電線と電柱だけがやけにはっきり見えて、ぶつからないようにずっと気を張っていた。',
+        name: '名無しさん', aid: 'Ld6xNa', uid: 'seed', user: false, ts: now - 20 * HOUR, likes: 9,
+        comments: []
+      },
+      {
+        id: 's6', title: '実家の階段が、一段ずつ増えていく',
+        body: '夜、二階に上がろうとしたら階段がいつもより長い。数えながら上ると、数えるたびに一段増える。途中で下を見たら、玄関の明かりがすごく小さく見えた。',
+        name: 'よふかし', aid: '', uid: 'seed', user: true, ts: now - 6 * HOUR, likes: 17,
+        comments: []
+      },
+      {
+        id: 's7', title: '海の底に、駅のホームがあった',
+        body: '潜っていったら、海の底に駅のホームが静かに立っていた。電光掲示板には行き先じゃなくて、知らない人の名前が並んでいた。自分の名前を探そうとしたところで、息が苦しくなって起きた。',
+        name: 'ねむり', aid: '', uid: 'seed', user: true, ts: now - 4 * DAY, likes: 11,
+        comments: []
+      },
+      {
+        id: 's8', title: 'コンビニの棚が全部同じ商品だった',
+        body: '何を買おうとしても、棚には同じ緑のお茶だけがずらっと並んでいた。店員さんに聞こうとしたら、店員さんも全員同じ顔だった。',
+        name: 'よふかし', aid: '', uid: 'seed', user: true, ts: now - 8 * DAY, likes: 5,
+        comments: []
+      }
+    ];
+  }
+
+  /* ---------- state ---------- */
+  var uid = store.get('yume_uid', null);
+  if (!uid) {
+    uid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    store.set('yume_uid', uid);
+  }
+  var posts = store.get('yume_posts_v2', null);
+  if (!Array.isArray(posts)) {
+    // carry over posts written in the first prototype, then add the new sample data
+    var old = store.get('yume_posts_v1', null);
+    var mine = Array.isArray(old) ? old.filter(function (p) { return p.uid === uid && !/^s\d+$/.test(p.id); }) : [];
+    posts = seed().concat(mine);
+    store.set('yume_posts_v2', posts);
+  }
+  posts.forEach(function (p) { if (!Array.isArray(p.comments)) p.comments = []; });
+
+  var liked = new Set(store.get('yume_liked_v2', []));
+  var cliked = new Set(store.get('yume_cliked_v2', []));
+  var reported = new Set(store.get('yume_reported_v2', []));
+  var user = store.get('yume_user_v1', null);
+  var view = { mode: 'new', period: 'day', profile: null, prev: null };
+  var expanded = new Set();
+  var pendingDelete = null, pendingTimer = null;
+  var cs = { postId: null, sort: 'top', replyTo: null, open: new Set(), pendDel: null, pendTimer: null, noFocus: false };
+
+  function savePosts() { store.set('yume_posts_v2', posts); }
+  function saveLiked() { store.set('yume_liked_v2', Array.from(liked)); }
+  function saveCLiked() { store.set('yume_cliked_v2', Array.from(cliked)); }
+  function saveReported() { store.set('yume_reported_v2', Array.from(reported)); }
+
+  function getPost(id) { return posts.filter(function (x) { return x.id === id; })[0]; }
+  function countComments(p) {
+    return p.comments.reduce(function (n, c) { return n + 1 + (c.replies ? c.replies.length : 0); }, 0);
+  }
+  function curName() { return user ? user.name : '名無しさん'; }
+  function curKey() { return user ? 'u:' + user.name : 'a:' + anonId(uid, Date.now()); }
+
+  /* ---------- rendering: board ---------- */
+  function visiblePosts() {
+    var list = posts.filter(function (p) { return !reported.has(p.id); });
+    if (view.mode === 'profile') {
+      list = list.filter(function (p) { return p.user && p.name === view.profile; });
+      list.sort(function (a, b) { return b.ts - a.ts; });
+    } else if (view.mode === 'new') {
+      list.sort(function (a, b) { return b.ts - a.ts; });
+    } else {
+      var win = view.period === 'day' ? DAY : view.period === 'week' ? 7 * DAY : Infinity;
+      var now = Date.now();
+      list = list.filter(function (p) { return now - p.ts <= win; });
+      list.sort(function (a, b) { return (b.likes - a.likes) || (b.ts - a.ts); });
+    }
+    return list;
+  }
+
+  function renderAuth() {
+    var box = $('#auth');
+    box.textContent = '';
+    if (user) {
+      box.appendChild(h('button', {
+        type: 'button', class: 'namebtn who', text: user.name, title: '自分のページを開く',
+        onclick: function () { openProfile(user.name); }
+      }));
+      box.appendChild(h('button', { type: 'button', class: 'btn small', text: 'ログアウト', onclick: logout }));
+    } else {
+      box.appendChild(h('button', { type: 'button', class: 'btn small', text: 'ログイン', onclick: openLogin }));
+    }
+    var as = $('#postingAs');
+    if (user) {
+      as.hidden = false;
+      as.textContent = user.name + ' として投稿します。';
+      $('#nameField').hidden = true;
+    } else {
+      as.hidden = true;
+      $('#nameField').hidden = false;
+    }
+  }
+
+  function renderControls() {
+    $('#modeNew').setAttribute('aria-pressed', String(view.mode === 'new'));
+    $('#modeRank').setAttribute('aria-pressed', String(view.mode === 'rank'));
+    $('#periods').hidden = view.mode !== 'rank';
+    Array.prototype.forEach.call(document.querySelectorAll('#periods button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-period') === view.period));
+    });
+  }
+
+  function renderProfile() {
+    var box = $('#profile');
+    box.textContent = '';
+    var name = view.profile;
+    var mine = posts.filter(function (p) { return p.user && p.name === name && !reported.has(p.id); });
+    var total = mine.reduce(function (n, p) { return n + p.likes; }, 0);
+    var self = !!user && user.name === name;
+    box.appendChild(h('button', { type: 'button', class: 'linkbtn', text: '掲示板に戻る', onclick: closeProfile }));
+    box.appendChild(h('div', { class: 'profile-head' },
+      avatar(name, 'u:' + name, 'lg'),
+      h('div', {},
+        h('h2', { id: 'profileName', tabindex: '-1', text: name }),
+        h('p', { class: 'stats' },
+          h('span', { text: '投稿 ' + mine.length + '件' }),
+          h('span', { text: 'もらったいいね ' + total })
+        ),
+        self ? h('p', { class: 'self-note', text: 'あなたのページです' }) : null
+      )
+    ));
+  }
+
+  function renderChrome() {
+    var prof = view.mode === 'profile';
+    $('#compose').hidden = prof;
+    $('#listTop').hidden = prof;
+    $('#profile').hidden = !prof;
+    if (prof) renderProfile();
+  }
+
+  function renderList() {
+    var ol = $('#posts');
+    var empty = $('#empty');
+    ol.textContent = '';
+    var list = visiblePosts();
+    empty.textContent = '';
+    if (!list.length) {
+      empty.hidden = false;
+      if (view.mode === 'rank') {
+        empty.appendChild(h('p', { text: 'この期間の投稿はまだありません。' }));
+        empty.appendChild(h('button', {
+          type: 'button', class: 'btn small', text: '全期間を見る',
+          onclick: function () { view.period = 'all'; render(); }
+        }));
+      } else if (view.mode === 'profile') {
+        empty.appendChild(h('p', { text: 'このユーザーの投稿はまだありません。' }));
+      } else {
+        empty.appendChild(h('p', { text: 'まだ投稿がありません。最初の夢を書いてみましょう。' }));
+      }
+      return;
+    }
+    empty.hidden = true;
+
+    list.forEach(function (p, i) {
+      var isLiked = liked.has(p.id);
+      var long = p.body.length > 110 || p.body.split('\n').length > 4;
+      var isOpen = expanded.has(p.id);
+      var ranked = view.mode === 'rank';
+      var nComments = countComments(p);
+
+      var likeBtn = h('button', {
+        type: 'button', class: 'like', 'aria-pressed': String(isLiked), 'data-fk': 'like:' + p.id,
+        'aria-label': 'いいね（' + p.likes + '）', title: isLiked ? 'いいねを取り消す' : 'いいね',
+        onclick: function () { toggleLike(p.id); }
+      });
+      likeBtn.insertAdjacentHTML('beforeend', MOON);
+      likeBtn.appendChild(h('span', { class: 'num', text: String(p.likes) }));
+
+      var nameEl = p.user
+        ? h('button', { type: 'button', class: 'namebtn', text: p.name, title: p.name + ' のページを開く', onclick: function () { openProfile(p.name); } })
+        : h('span', { class: 'name', text: p.name });
+
+      var meta = h('div', { class: 'meta' },
+        avatar(p.name, ukey(p), 'sm'),
+        nameEl,
+        p.user ? null : h('span', { text: 'ID:' + p.aid }),
+        timeEl(p.ts)
+      );
+
+      var body = h('p', { class: 'body' + (long && !isOpen ? ' clamped' : ''), text: p.body });
+
+      var actions = h('div', { class: 'actions' });
+      var cBtn = h('button', {
+        type: 'button', class: 'cbtn', 'data-fk': 'cm:' + p.id,
+        'aria-label': 'コメント ' + nComments + '件を見る',
+        onclick: function () { openComments(p.id); }
+      });
+      cBtn.insertAdjacentHTML('beforeend', BUBBLE);
+      cBtn.appendChild(h('span', { text: String(nComments) }));
+      actions.appendChild(cBtn);
+      if (long) {
+        actions.appendChild(h('button', {
+          type: 'button', class: 'linkbtn', 'aria-expanded': String(isOpen), 'data-fk': 'more:' + p.id,
+          text: isOpen ? '閉じる' : '続きを読む',
+          onclick: function () {
+            if (expanded.has(p.id)) expanded.delete(p.id); else expanded.add(p.id);
+            renderList(); focusFk('more:' + p.id);
+          }
+        }));
+      }
+      if (p.uid === uid) {
+        actions.appendChild(h('button', {
+          type: 'button', class: 'linkbtn warn', 'data-fk': 'del:' + p.id,
+          text: pendingDelete === p.id ? 'もう一度押すと削除します' : '削除',
+          onclick: function () { deletePost(p.id); }
+        }));
+      } else {
+        actions.appendChild(h('button', {
+          type: 'button', class: 'linkbtn', text: '通報',
+          onclick: function () { reportPost(p.id); }
+        }));
+      }
+
+      var li = h('li', { class: 'post' + (ranked ? ' ranked' : '') });
+      if (ranked) li.appendChild(h('div', { class: 'rank' + (i < 3 ? ' top' : ''), 'aria-label': (i + 1) + '位', text: String(i + 1) }));
+      li.appendChild(likeBtn);
+      li.appendChild(h('div', { class: 'post-main' }, h('h2', { text: p.title }), meta, body, actions));
+      ol.appendChild(li);
+    });
+  }
+
+  function render() { renderAuth(); renderChrome(); renderControls(); renderList(); }
+
+  /* ---------- post actions ---------- */
+  function toggleLike(id) {
+    var p = getPost(id);
+    if (!p) return;
+    if (liked.has(id)) { liked.delete(id); p.likes = Math.max(0, p.likes - 1); }
+    else { liked.add(id); p.likes += 1; }
+    savePosts(); saveLiked();
+    renderList();
+    if (view.mode === 'profile') renderProfile();
+    focusFk('like:' + id);
+  }
+
+  function deletePost(id) {
+    if (pendingDelete !== id) {
+      pendingDelete = id;
+      clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(function () { pendingDelete = null; renderList(); }, 4000);
+      renderList(); focusFk('del:' + id);
+      return;
+    }
+    clearTimeout(pendingTimer);
+    pendingDelete = null;
+    posts = posts.filter(function (x) { return x.id !== id; });
+    liked.delete(id);
+    savePosts(); saveLiked();
+    renderChrome(); renderList();
+    toast('削除しました');
+  }
+
+  function reportPost(id) {
+    reported.add(id);
+    saveReported();
+    renderChrome(); renderList();
+    toast('通報しました。この投稿は表示されなくなります。');
+  }
+
+  /* ---------- profile navigation ---------- */
+  function openProfile(name) {
+    if (cDlg.open) closeComments(true);
+    if (view.mode !== 'profile') view.prev = { mode: view.mode, period: view.period };
+    view.mode = 'profile';
+    view.profile = name;
+    render();
+    window.scrollTo(0, 0);
+    var t = $('#profileName');
+    if (t) t.focus({ preventScroll: true });
+  }
+  function closeProfile() {
+    var prev = view.prev || { mode: 'new', period: 'day' };
+    view.mode = prev.mode; view.period = prev.period;
+    view.profile = null; view.prev = null;
+    render();
+    window.scrollTo(0, 0);
+    $(view.mode === 'rank' ? '#modeRank' : '#modeNew').focus({ preventScroll: true });
+  }
+
+  /* ---------- comments (popup) ---------- */
+  var cDlg = $('#cDlg');
+
+  function findC(p, id) {
+    for (var i = 0; i < p.comments.length; i++) {
+      var c = p.comments[i];
+      if (c.id === id) return { item: c, parent: null };
+      for (var j = 0; j < c.replies.length; j++) {
+        if (c.replies[j].id === id) return { item: c.replies[j], parent: c };
+      }
+    }
+    return null;
+  }
+
+  function openComments(postId) {
+    cs.postId = postId; cs.replyTo = null; cs.open = new Set(); cs.pendDel = null; cs.noFocus = false;
+    $('#cInput').value = '';
+    syncCSubmit();
+    renderComments();
+    document.body.classList.add('lock');
+    if (typeof cDlg.showModal === 'function') cDlg.showModal(); else cDlg.setAttribute('open', '');
+    $('#cBody').scrollTop = 0;
+    $('#cTitle').focus();
+  }
+
+  function closeComments(noFocus) {
+    cs.noFocus = !!noFocus;
+    if (typeof cDlg.close === 'function') cDlg.close(); else { cDlg.removeAttribute('open'); onCommentsClosed(); }
+  }
+
+  function onCommentsClosed() {
+    document.body.classList.remove('lock');
+    var id = cs.postId;
+    var skip = cs.noFocus;
+    cs.postId = null; cs.replyTo = null; cs.noFocus = false;
+    clearTimeout(cs.pendTimer); cs.pendDel = null;
+    if (!skip && id) focusFk('cm:' + id);
+  }
+
+  function syncCSubmit() { $('#cSubmit').disabled = !$('#cInput').value.trim(); }
+
+  function commentEl(p, c, parentC) {
+    var isReply = !!parentC;
+    var root = parentC || c;
+
+    var likeBtn = h('button', {
+      type: 'button', class: 'clike', 'aria-pressed': String(cliked.has(c.id)), 'data-fk': 'cl:' + c.id,
+      'aria-label': 'いいね（' + c.likes + '）',
+      onclick: function () { toggleCLike(p.id, c.id); }
+    });
+    likeBtn.insertAdjacentHTML('beforeend', MOON);
+    likeBtn.appendChild(h('span', { class: 'num', text: String(c.likes) }));
+
+    var nameEl = c.user
+      ? h('button', { type: 'button', class: 'namebtn cname', text: c.name, title: c.name + ' のページを開く', onclick: function () { openProfile(c.name); } })
+      : h('span', { class: 'cname', text: c.name });
+
+    var meta = h('div', { class: 'cm-meta' }, nameEl, c.user ? null : h('span', { text: 'ID:' + c.aid }), timeEl(c.ts));
+
+    var actions = h('div', { class: 'cm-actions' },
+      likeBtn,
+      h('button', {
+        type: 'button', class: 'linkbtn', text: '返信', 'data-fk': 'rp:' + c.id,
+        onclick: function () { startReply(p.id, root.id, c.id, isReply ? c.name : null); }
+      })
+    );
+    if (c.uid === uid) {
+      actions.appendChild(h('button', {
+        type: 'button', class: 'linkbtn warn', 'data-fk': 'cd:' + c.id,
+        text: cs.pendDel === c.id ? 'もう一度押すと削除します' : '削除',
+        onclick: function () { deleteComment(p.id, c.id); }
+      }));
+    }
+
+    var main = h('div', { class: 'cm-main' }, meta, h('p', { class: 'cm-text', text: c.text }), actions);
+
+    if (cs.replyTo && cs.replyTo.from === c.id) main.appendChild(replyForm(p, root, cs.replyTo.mention));
+
+    if (!isReply && c.replies.length) {
+      var isOpen = cs.open.has(c.id);
+      main.appendChild(h('button', {
+        type: 'button', class: 'reply-toggle', 'aria-expanded': String(isOpen), 'data-fk': 'rt:' + c.id,
+        text: '返信 ' + c.replies.length + '件を' + (isOpen ? '非表示' : '表示'),
+        onclick: function () {
+          if (cs.open.has(c.id)) cs.open.delete(c.id); else cs.open.add(c.id);
+          renderComments('rt:' + c.id);
+        }
+      }));
+      if (isOpen) {
+        var rl = h('ul', { class: 'replies' });
+        c.replies.slice().sort(function (a, b) { return a.ts - b.ts; }).forEach(function (r) {
+          rl.appendChild(commentEl(p, r, c));
+        });
+        main.appendChild(rl);
+      }
+    }
+
+    return h('li', { class: 'cm' }, avatar(c.name, ukey(c), isReply ? 'sm' : null), main);
+  }
+
+  function replyForm(p, root, mention) {
+    var prefix = mention ? '@' + mention + ' ' : '';
+    var ta = h('textarea', { id: 'rInput', maxlength: '500', rows: '2', 'aria-label': '返信を追加', placeholder: '返信を追加…' });
+    ta.value = prefix;
+    var submit = h('button', { type: 'submit', class: 'btn primary small', text: '返信する', disabled: true });
+    function meaningful() { var t = ta.value.trim(); return t && t !== prefix.trim(); }
+    function sync() { submit.disabled = !meaningful(); }
+    ta.addEventListener('input', sync);
+    var from = cs.replyTo.from;
+    return h('form', {
+      class: 'cform rform', novalidate: true,
+      onsubmit: function (e) {
+        e.preventDefault();
+        if (!meaningful()) return;
+        addComment(p.id, root.id, ta.value.trim());
+      }
+    },
+      avatar(curName(), curKey(), 'sm'),
+      h('div', { class: 'cform-main' },
+        ta,
+        h('div', { class: 'cform-foot' },
+          h('button', { type: 'button', class: 'btn small', text: 'キャンセル', onclick: function () { cs.replyTo = null; renderComments('rp:' + from); } }),
+          submit
+        )
+      )
+    );
+  }
+
+  function renderComments(fk) {
+    var p = getPost(cs.postId);
+    if (!p) return;
+    $('#cTitle').textContent = 'コメント ' + countComments(p) + '件';
+    $('#cCtx').textContent = '「' + p.title + '」';
+    Array.prototype.forEach.call(document.querySelectorAll('.csort button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-sort') === cs.sort));
+    });
+    var av = $('#cAvatar');
+    av.textContent = '';
+    av.appendChild(avatar(curName(), curKey()));
+    $('#cHint').textContent = user ? user.name + ' として投稿します' : '名無しさんとして投稿します（ログインすると名前が付きます）';
+
+    var list = p.comments.slice();
+    if (cs.sort === 'top') list.sort(function (a, b) { return (b.likes - a.likes) || (b.ts - a.ts); });
+    else list.sort(function (a, b) { return b.ts - a.ts; });
+    var ul = $('#cList');
+    ul.textContent = '';
+    list.forEach(function (c) { ul.appendChild(commentEl(p, c, null)); });
+    $('#cEmpty').hidden = list.length > 0;
+    if (fk) focusFk(fk);
+  }
+
+  function addComment(postId, parentId, text) {
+    var p = getPost(postId);
+    if (!p) return;
+    var ts = Date.now();
+    var item = {
+      id: 'k' + ts.toString(36) + Math.random().toString(36).slice(2, 6),
+      text: text, uid: uid, ts: ts, likes: 0, replies: [],
+      user: !!user, name: curName(), aid: user ? '' : anonId(uid, ts)
+    };
+    if (parentId) {
+      var f = findC(p, parentId);
+      if (!f) return;
+      f.item.replies.push(item);
+      cs.open.add(parentId);
+      cs.replyTo = null;
+    } else {
+      p.comments.unshift(item);
+      cs.sort = 'new';
+    }
+    savePosts();
+    renderComments(parentId ? 'rt:' + parentId : null);
+    renderList();
+  }
+
+  function startReply(postId, rootId, fromId, mention) {
+    cs.replyTo = { cid: rootId, from: fromId, mention: mention };
+    cs.open.add(rootId);
+    renderComments();
+    var ta = $('#rInput');
+    if (ta) {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+  }
+
+  function toggleCLike(postId, cid) {
+    var p = getPost(postId);
+    var f = p && findC(p, cid);
+    if (!f) return;
+    if (cliked.has(cid)) { cliked.delete(cid); f.item.likes = Math.max(0, f.item.likes - 1); }
+    else { cliked.add(cid); f.item.likes += 1; }
+    savePosts(); saveCLiked();
+    renderComments('cl:' + cid);
+  }
+
+  function deleteComment(postId, cid) {
+    var p = getPost(postId);
+    if (!p) return;
+    if (cs.pendDel !== cid) {
+      cs.pendDel = cid;
+      clearTimeout(cs.pendTimer);
+      cs.pendTimer = setTimeout(function () { cs.pendDel = null; if (cs.postId) renderComments(); }, 4000);
+      renderComments('cd:' + cid);
+      return;
+    }
+    clearTimeout(cs.pendTimer);
+    cs.pendDel = null;
+    var f = findC(p, cid);
+    if (!f) return;
+    if (f.parent) f.parent.replies = f.parent.replies.filter(function (r) { return r.id !== cid; });
+    else p.comments = p.comments.filter(function (c) { return c.id !== cid; });
+    savePosts();
+    renderComments();
+    renderList();
+    $('#cTitle').focus();
+    toast('削除しました');
+  }
+
+  $('#cForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = $('#cInput').value.trim();
+    if (!t) return;
+    addComment(cs.postId, null, t);
+    $('#cInput').value = '';
+    syncCSubmit();
+    $('#cBody').scrollTop = 0;
+    toast('コメントしました');
+  });
+  $('#cInput').addEventListener('input', syncCSubmit);
+  Array.prototype.forEach.call(document.querySelectorAll('.csort button'), function (b) {
+    b.addEventListener('click', function () { cs.sort = b.getAttribute('data-sort'); renderComments(); });
+  });
+  $('#cClose').addEventListener('click', function () { closeComments(false); });
+  cDlg.addEventListener('click', function (e) { if (e.target === cDlg) closeComments(false); });
+  cDlg.addEventListener('close', onCommentsClosed);
+
+  /* ---------- compose form ---------- */
+  var form = $('#postForm'), toggleBtn = $('#toggleForm');
+  function setForm(open) {
+    form.hidden = !open;
+    toggleBtn.setAttribute('aria-expanded', String(open));
+    toggleBtn.hidden = open;
+    if (open) $('#fTitle').focus();
+  }
+  function setErr(id, inputId, msg) {
+    $(id).textContent = msg;
+    if (msg) $(inputId).setAttribute('aria-invalid', 'true'); else $(inputId).removeAttribute('aria-invalid');
+  }
+  function updateCounter() { $('#counter').textContent = $('#fBody').value.length + ' / 2000'; }
+
+  toggleBtn.addEventListener('click', function () { setForm(true); });
+  $('#cancelForm').addEventListener('click', function () { setForm(false); });
+  $('#fBody').addEventListener('input', updateCounter);
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('#fTitle').value.trim();
+    var body = $('#fBody').value.trim();
+    setErr('#titleErr', '#fTitle', title ? '' : 'タイトルを入力してください。');
+    setErr('#bodyErr', '#fBody', body ? '' : '夢の内容を入力してください。');
+    if (!title) { $('#fTitle').focus(); return; }
+    if (!body) { $('#fBody').focus(); return; }
+    var ts = Date.now();
+    var post = {
+      id: 'p' + ts.toString(36) + Math.random().toString(36).slice(2, 6),
+      title: title, body: body, uid: uid, ts: ts, likes: 0, comments: [],
+      user: !!user,
+      name: user ? user.name : ($('#fName').value.trim() || '名無しさん'),
+      aid: user ? '' : anonId(uid, ts)
+    };
+    posts.unshift(post);
+    savePosts();
+    $('#fTitle').value = ''; $('#fBody').value = ''; updateCounter();
+    setErr('#titleErr', '#fTitle', ''); setErr('#bodyErr', '#fBody', '');
+    setForm(false);
+    view.mode = 'new';
+    render();
+    toast('投稿しました');
+    $('#listTop').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' });
+  });
+
+  /* ---------- controls ---------- */
+  $('#modeNew').addEventListener('click', function () { view.mode = 'new'; render(); });
+  $('#modeRank').addEventListener('click', function () { view.mode = 'rank'; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('#periods button'), function (b) {
+    b.addEventListener('click', function () { view.period = b.getAttribute('data-period'); render(); });
+  });
+
+  /* ---------- login (demo: no password) ---------- */
+  var dlg = $('#loginDlg');
+  function openLogin() {
+    $('#lName').value = '';
+    setErr('#lErr', '#lName', '');
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    $('#lName').focus();
+  }
+  function closeLogin() {
+    if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
+  }
+  function logout() {
+    user = null;
+    store.set('yume_user_v1', null);
+    render();
+    toast('ログアウトしました');
+  }
+  $('#loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('#lName').value.trim();
+    if (!name) { setErr('#lErr', '#lName', 'ユーザー名を入力してください。'); $('#lName').focus(); return; }
+    user = { name: name };
+    store.set('yume_user_v1', user);
+    closeLogin();
+    render();
+    toast(name + ' としてログインしました');
+  });
+  $('#loginCancel').addEventListener('click', closeLogin);
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) closeLogin(); });
+
+  /* ---------- reset ---------- */
+  $('#resetDemo').addEventListener('click', function () {
+    posts = seed(); liked = new Set(); cliked = new Set(); reported = new Set(); expanded = new Set();
+    savePosts(); saveLiked(); saveCLiked(); saveReported();
+    view.mode = 'new'; view.profile = null; view.prev = null;
+    render();
+    toast('サンプルデータに戻しました');
+  });
+
+  updateCounter();
+  render();
+})();
+
+</script>
+</body>
+</html>
