@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { Shippori_Mincho, Zen_Kaku_Gothic_New } from 'next/font/google';
 import { getViewer, toViewerInfo } from '@/lib/viewer';
+import { unreadCount } from '@/lib/data';
 import { ToastProvider } from '@/components/Toast';
 import { AuthBox } from '@/components/AuthBox';
 import { MoonLogo } from '@/components/icons';
@@ -38,7 +39,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const viewer = toViewerInfo(await getViewer());
+  const v = await getViewer();
+  const viewer = toViewerInfo(v);
+  const unread = await unreadCount(v).catch(() => 0);
   return (
     <html lang="ja" className={`${serif.variable} ${sans.variable}`}>
       <body>
@@ -52,12 +55,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </Link>
                 <p className="tagline">見た夢を、そのまま置いていく場所。</p>
               </div>
-              <AuthBox viewer={viewer} />
+              <AuthBox viewer={viewer} unread={unread} />
             </header>
             {children}
             <footer>
-              <p>夢の内容には、怖い描写や生々しい描写が含まれることがあります。見たくない投稿は「通報」で非表示にできます。</p>
+              <p>夢の内容には、怖い描写や生々しい描写が含まれることがあります。閲覧注意の投稿は、押すまで本文を隠しています。見たくない人の書き込みは「その他」からミュートや通報ができます。</p>
               <p>実名・住所など、個人が特定できる情報は書かないでください。</p>
+              <nav className="foot-links" aria-label="サイトの情報">
+                <Link href="/terms">利用規約</Link>
+                <Link href="/privacy">プライバシーポリシー</Link>
+                <Link href="/mutes">ミュート中の人</Link>
+              </nav>
             </footer>
           </div>
         </ToastProvider>

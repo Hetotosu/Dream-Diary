@@ -29,7 +29,7 @@ export default async function UserPage({ params, searchParams }: PageProps<'/u/[
   const info = toViewerInfo(viewer);
   const [stats, { posts, hasMore }] = await Promise.all([
     profileInfo(viewer, profile),
-    listPosts(viewer, { mode: 'new', authorId: profile.id }),
+    listPosts(viewer, { mode: 'profile', authorId: profile.id }),
   ]);
   const post = typeof sp.post === 'string' && isUuid(sp.post) ? sp.post : null;
   return (

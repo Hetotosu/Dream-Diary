@@ -72,3 +72,25 @@ insert into comments (id, post_id, parent_id, author_id, display_name, anon_tag,
    '00000000-0000-4000-8000-000000000002', 'よふかし', null,
    '@ねむり 疑わない夢ほど、あとから怖くなるよね。', 2, now() - interval '1 day')
 on conflict (id) do nothing;
+
+-- 追加機能（0002）のサンプル：タグ・見た日・閲覧注意・「私も見た」の数
+update posts set tags = '{怖い夢,不思議な夢}', sensitive = true, same_count = 2,
+  dreamed_on = ((now() - interval '2 hours') at time zone 'Asia/Tokyo')::date
+  where id = '10000000-0000-4000-8000-000000000001';
+update posts set tags = '{乗り物,知らない場所}', same_count = 8,
+  dreamed_on = ((now() - interval '3 days') at time zone 'Asia/Tokyo')::date
+  where id = '10000000-0000-4000-8000-000000000002';
+update posts set tags = '{乗り物,怖い夢}', same_count = 1
+  where id = '10000000-0000-4000-8000-000000000003';
+update posts set tags = '{学校,何度も見る夢}', same_count = 19,
+  dreamed_on = ((now() - interval '13 days') at time zone 'Asia/Tokyo')::date
+  where id = '10000000-0000-4000-8000-000000000004';
+update posts set tags = '{空を飛ぶ}', same_count = 6
+  where id = '10000000-0000-4000-8000-000000000005';
+update posts set tags = '{家族,何度も見る夢}', same_count = 4,
+  dreamed_on = ((now() - interval '1 day') at time zone 'Asia/Tokyo')::date
+  where id = '10000000-0000-4000-8000-000000000006';
+update posts set tags = '{知らない場所,不思議な夢}', same_count = 3
+  where id = '10000000-0000-4000-8000-000000000007';
+update posts set tags = '{不思議な夢}', same_count = 2
+  where id = '10000000-0000-4000-8000-000000000008';

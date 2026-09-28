@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 import { signOut } from '@/app/actions';
 import { useToast } from '@/components/Toast';
 import { LoginDialog } from '@/components/LoginDialog';
+import { BellIcon } from '@/components/icons';
 import type { ViewerInfo } from '@/lib/types';
 
-export function AuthBox({ viewer }: { viewer: ViewerInfo }) {
+export function AuthBox({ viewer, unread }: { viewer: ViewerInfo; unread: number }) {
   const router = useRouter();
   const toast = useToast();
   const [loginOpen, setLoginOpen] = useState(false);
@@ -35,6 +36,22 @@ export function AuthBox({ viewer }: { viewer: ViewerInfo }) {
   if (viewer.loggedIn) {
     return (
       <div className="auth">
+        {viewer.isAdmin && (
+          <Link href="/admin" className="linkbtn">
+            管理
+          </Link>
+        )}
+        {viewer.username && (
+          <Link
+            href="/notifications"
+            className="bell"
+            aria-label={unread ? `お知らせ（未読 ${unread}件）` : 'お知らせ'}
+            title="お知らせ"
+          >
+            <BellIcon />
+            {unread > 0 && <span className="badge">{unread > 99 ? '99+' : unread}</span>}
+          </Link>
+        )}
         {viewer.username ? (
           <Link href={`/u/${encodeURIComponent(viewer.username)}`} className="namebtn who" title="自分のページを開く">
             {viewer.username}

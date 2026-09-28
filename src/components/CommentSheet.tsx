@@ -2,14 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import {
-  adminHide,
-  createComment,
-  deleteComment,
-  fetchComments,
-  report,
-  setCommentLike,
-} from '@/app/actions';
+import { createComment, deleteComment, fetchComments, mute, report, setCommentLike } from '@/app/actions';
+import { adminHide } from '@/app/admin/actions';
 import { Avatar, avatarKey } from '@/components/Avatar';
 import { CloseIcon, MoonIcon } from '@/components/icons';
 import { TimeAgo } from '@/components/TimeAgo';
@@ -286,6 +280,28 @@ export function CommentSheet({ postId, viewer, onClose, onCountChange, onPostGon
     toast('通報しました。このコメントは表示されなくなります。');
   }
 
+  async function muteAuthor(c: Comment) {
+    const res = await mute('comment', c.id);
+    if (!res.ok) return toast(res.error);
+    // 同じ人（登録ユーザーは名前、匿名は同じ ID）のコメントを画面から消す
+    setComments(
+      (list) =>
+        list &&
+        list.filter((x) => {
+          const same =
+            x.id === c.id || (c.username ? x.username === c.username : !!c.anonTag && !x.username && x.anonTag === c.anonTag);
+          return !same;
+        }),
+    );
+    setComments((list) => {
+      if (!list) return list;
+      const roots = new Set(list.filter((x) => !x.parentId).map((x) => x.id));
+      return list.filter((x) => !x.parentId || roots.has(x.parentId));
+    });
+    heading.current?.focus();
+    toast(`${res.label} をミュートしました`);
+  }
+
   function renderComment(c: Comment, root: Comment) {
     const isReply = !!c.parentId;
     const kids = !isReply ? replies.get(c.id) ?? [] : [];
@@ -343,10 +359,15 @@ export function CommentSheet({ postId, viewer, onClose, onCountChange, onPostGon
                 {pending === `del:${c.id}` ? 'もう一度押すと削除します' : c.mine ? '削除' : '削除（管理者）'}
               </button>
             )}
-            {!c.mine && (
-              <button type="button" className="linkbtn" onClick={() => reportComment(c)}>
-                通報
-              </button>
+            {!c.mine && !tmp && (
+              <>
+                <button type="button" className="linkbtn" onClick={() => muteAuthor(c)}>
+                  ミュート
+                </button>
+                <button type="button" className="linkbtn" onClick={() => reportComment(c)}>
+                  通報
+                </button>
+              </>
             )}
             {viewer.isAdmin && !tmp && (
               <button type="button" className="linkbtn warn" onClick={() => hide(c)}>

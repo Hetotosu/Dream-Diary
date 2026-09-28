@@ -37,6 +37,9 @@ export function WelcomeForm({ next }: { next: string }) {
     <main className="page">
       <h2>ユーザー名を決める</h2>
       <p>掲示板に表示される名前です。あとから変えることはできません。</p>
+      <p className="fine">
+        始めると<a href="/terms">利用規約</a>と<a href="/privacy">プライバシーポリシー</a>に同意したことになります。
+      </p>
       <form className="compose-form" onSubmit={submit} noValidate>
         <div className="field">
           <label htmlFor="uName">

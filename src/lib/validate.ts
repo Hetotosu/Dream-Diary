@@ -58,3 +58,31 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export function isUuid(v: unknown): v is string {
   return typeof v === 'string' && UUID_RE.test(v);
 }
+
+/** タグ：決められたものから3つまで。重複は落とす */
+export function cleanTags(input: unknown, allowed: readonly string[], max: number): string[] | null {
+  if (input == null) return [];
+  if (!Array.isArray(input)) return null;
+  const out: string[] = [];
+  for (const t of input) {
+    if (typeof t !== 'string' || !allowed.includes(t)) return null;
+    if (!out.includes(t)) out.push(t);
+  }
+  return out.length <= max ? out : null;
+}
+
+/** 日本時間の今日（YYYY-MM-DD）。ブラウザでもサーバーでも同じ答えになる */
+export function todayJst(now = Date.now()): string {
+  return new Date(now + 9 * 3600_000).toISOString().slice(0, 10);
+}
+
+/** 見た日：空欄か、1900-01-01〜今日（日本時間）の日付 */
+export function checkDreamedOn(v: string): string | null {
+  if (!v) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(`${v}T00:00:00Z`))) {
+    return '見た日は「2026-09-28」のような日付で入力してください。';
+  }
+  if (v < '1900-01-01') return '見た日が古すぎます。日付を確かめてください。';
+  if (v > todayJst()) return '見た日に未来の日付は選べません。';
+  return null;
+}
