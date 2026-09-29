@@ -15,7 +15,12 @@ function decode(v: string): string {
 
 export async function generateMetadata({ params }: PageProps<'/u/[username]'>): Promise<Metadata> {
   const { username } = await params;
-  return { title: `${decode(username)} さんのページ` };
+  const name = decode(username);
+  return {
+    title: `${name} さんの夢日記`,
+    description: `${name} さんがゆめ掲示板に投稿した夢の一覧です。`,
+    alternates: { canonical: `/u/${encodeURIComponent(name)}` },
+  };
 }
 
 export default async function UserPage({ params, searchParams }: PageProps<'/u/[username]'>) {

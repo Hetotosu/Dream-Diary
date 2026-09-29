@@ -1,7 +1,10 @@
+import type { Metadata } from 'next';
 import { Board } from '@/components/Board';
 import { listPosts } from '@/lib/data';
 import { getViewer, toViewerInfo } from '@/lib/viewer';
 import { isUuid } from '@/lib/validate';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 export default async function Home({ searchParams }: PageProps<'/'>) {
   const sp = await searchParams;

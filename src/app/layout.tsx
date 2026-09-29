@@ -6,7 +6,7 @@ import { unreadCount } from '@/lib/data';
 import { ToastProvider } from '@/components/Toast';
 import { AuthBox } from '@/components/AuthBox';
 import { MoonLogo } from '@/components/icons';
-import { SITE } from '@/lib/site';
+import { SITE, siteUrl } from '@/lib/site';
 import './globals.css';
 
 const serif = Shippori_Mincho({
@@ -24,9 +24,27 @@ const sans = Zen_Kaku_Gothic_New({
   variable: '--font-sans',
 });
 
+const DESCRIPTION =
+  '見た夢を、そのまま置いていく場所。怖い夢、不思議な夢、何度も見る夢を、匿名でも気軽に投稿できる夢の掲示板です。';
+
 export const metadata: Metadata = {
-  title: { default: 'ゆめ掲示板', template: '%s | ゆめ掲示板' },
-  description: '見た夢を、そのまま置いていく場所。',
+  metadataBase: new URL(siteUrl()),
+  title: { default: 'ゆめ掲示板｜見た夢を投稿する掲示板', template: '%s | ゆめ掲示板' },
+  description: DESCRIPTION,
+  applicationName: 'ゆめ掲示板',
+  keywords: ['夢', '夢日記', '掲示板', '怖い夢', '不思議な夢', '明晰夢', '夢の話'],
+  openGraph: {
+    type: 'website',
+    siteName: 'ゆめ掲示板',
+    title: 'ゆめ掲示板',
+    description: DESCRIPTION,
+    locale: 'ja_JP',
+  },
+  twitter: { card: 'summary_large_image' },
+  // Google Search Console の所有権確認（HTML タグ方式）。値は Vercel の環境変数に入れる
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {
