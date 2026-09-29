@@ -446,3 +446,8 @@ a { color: inherit; }
 .q-body { margin: .3rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 12rem; overflow: auto; font-size: .92rem; }
 .q-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .6rem; }
 .btn.danger { border-color: var(--danger); color: var(--danger); }
+
+.btn.wide { width: 100%; }
+.dlg-in .or { margin: .4rem 0 .8rem; text-align: left; }
+.dlg-in .err { color: var(--danger); margin: .3rem 0 0; }
+.dlg-in .err:empty { margin: 0; }

@@ -9,8 +9,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const dlg = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const googleBtn = useRef<HTMLButtonElement>(null);
   const [email, setEmail] = useState('');
   const [err, setErr] = useState('');
+  const [gErr, setGErr] = useState('');
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -19,9 +21,11 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
     if (!d) return;
     if (open && !d.open) {
       setErr('');
+      setGErr('');
       setSent(false);
       d.showModal();
-      input.current?.focus();
+      // 一番上の選択肢にフォーカスする
+      (GOOGLE ? googleBtn.current : input.current)?.focus();
     } else if (!open && d.open) {
       d.close();
     }
@@ -66,13 +70,14 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
 
   async function google() {
     setBusy(true);
+    setGErr('');
     const { error } = await createBrowserSupabase().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: redirectTo() },
     });
     if (error) {
       setBusy(false);
-      setErr('Google でログインできませんでした。もう一度試してください。');
+      setGErr('Google でログインできませんでした。もう一度試してください。');
     }
   }
 
@@ -101,7 +106,27 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
           </>
         ) : (
           <>
-            <p>メールアドレスに届くリンクからログインします。パスワードはいりません。初めての人は、そのまま登録になります。</p>
+            {GOOGLE ? (
+              <>
+                <p>Google アカウントか、メールアドレスでログインします。パスワードはいりません。初めての人は、そのまま登録になります。</p>
+                <button
+                  type="button"
+                  ref={googleBtn}
+                  className="btn primary wide"
+                  onClick={google}
+                  disabled={busy}
+                  aria-describedby="gErr"
+                >
+                  Google でログイン
+                </button>
+                <p className="err" id="gErr" role="alert">
+                  {gErr}
+                </p>
+                <p className="or">または、メールアドレスに届くリンクでログイン</p>
+              </>
+            ) : (
+              <p>メールアドレスに届くリンクからログインします。パスワードはいりません。初めての人は、そのまま登録になります。</p>
+            )}
             <form onSubmit={submit} noValidate>
               <div className="field">
                 <label htmlFor="lEmail">メールアドレス</label>
@@ -121,7 +146,7 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
                 </p>
               </div>
               <div className="form-actions">
-                <button type="submit" className="btn primary" disabled={busy}>
+                <button type="submit" className={GOOGLE ? 'btn' : 'btn primary'} disabled={busy}>
                   リンクを送る
                 </button>
                 <button type="button" className="btn" onClick={onClose}>
@@ -129,14 +154,6 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
                 </button>
               </div>
             </form>
-            {GOOGLE && (
-              <>
-                <p className="or">または</p>
-                <button type="button" className="btn" style={{ width: '100%' }} onClick={google} disabled={busy}>
-                  Google でログイン
-                </button>
-              </>
-            )}
           </>
         )}
       </div>
