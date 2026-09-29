@@ -89,7 +89,13 @@ export default function Privacy() {
       <p>必要に応じてこのポリシーを変更します。変更後の内容は、このページに載せた時点から効力を持ちます。</p>
 
       <h3>問い合わせ</h3>
-      <p>{SITE.contact}</p>
+      <p>
+        次のフォームから送ってください。
+        <br />
+        <a href={SITE.contactUrl} target="_blank" rel="noopener noreferrer">
+          お問い合わせフォーム
+        </a>
+      </p>
 
       <p className="fine">{SITE.effectiveDate} 制定</p>
     </main>

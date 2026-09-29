@@ -6,6 +6,7 @@ import { unreadCount } from '@/lib/data';
 import { ToastProvider } from '@/components/Toast';
 import { AuthBox } from '@/components/AuthBox';
 import { MoonLogo } from '@/components/icons';
+import { SITE } from '@/lib/site';
 import './globals.css';
 
 const serif = Shippori_Mincho({
@@ -65,6 +66,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/terms">利用規約</Link>
                 <Link href="/privacy">プライバシーポリシー</Link>
                 <Link href="/mutes">ミュート中の人</Link>
+                <a href={SITE.contactUrl} target="_blank" rel="noopener noreferrer">
+                  お問い合わせ
+                </a>
               </nav>
             </footer>
           </div>
