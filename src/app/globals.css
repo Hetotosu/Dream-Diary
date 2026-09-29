@@ -451,3 +451,11 @@ a { color: inherit; }
 .dlg-in .or { margin: .4rem 0 .8rem; text-align: left; }
 .dlg-in .err { color: var(--danger); margin: .3rem 0 0; }
 .dlg-in .err:empty { margin: 0; }
+
+.date-quick { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .45rem; }
+.date-quick button {
+  font: inherit; font-size: .82rem; padding: .25rem .8rem; min-height: 2.25rem; cursor: pointer;
+  border: 1.5px solid var(--field-line); border-radius: 2rem; background: transparent; color: var(--ink);
+}
+.date-quick button[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
+.field input[type="date"] { min-width: 10rem; }
