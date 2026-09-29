@@ -1,23 +1,11 @@
 import { ImageResponse } from 'next/og';
 import { getPublicPost } from '@/lib/data';
 import { isUuid } from '@/lib/validate';
+import { loadOgFont } from '@/lib/og';
 
 export const alt = 'ゆめ掲示板の投稿';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-
-/** 画像に使う文字だけを含んだフォントを Google Fonts から取る */
-async function loadFont(text: string): Promise<ArrayBuffer | null> {
-  try {
-    const url = `https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&text=${encodeURIComponent(text)}`;
-    const css = await (await fetch(url)).text();
-    const src = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/)?.[1];
-    if (!src) return null;
-    return await (await fetch(src)).arrayBuffer();
-  } catch {
-    return null;
-  }
-}
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,7 +13,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const title = !post ? '見た夢を、そのまま置いていく場所。' : post.sensitive ? '閲覧注意の夢' : post.title;
   const sub = post ? `${post.name} さんが見た夢` : '';
   const brand = 'ゆめ掲示板';
-  const font = await loadFont(title + sub + brand);
+  const font = await loadOgFont(title + sub + brand);
 
   return new ImageResponse(
     (
