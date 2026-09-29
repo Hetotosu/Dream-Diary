@@ -459,3 +459,53 @@ a { color: inherit; }
 }
 .date-quick button[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
 .field input[type="date"] { min-width: 10rem; }
+
+/* ---------- 動き（最低限）。「動きを減らす」設定の人には出さない ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* いいね・私も見た：押したときに弾む */
+  .like.pop svg, .clike.pop svg { animation: moon-pop .42s cubic-bezier(.3, 1.6, .5, 1); }
+  .same.pop { animation: chip-pop .32s ease-out; }
+  @keyframes moon-pop {
+    0% { transform: scale(1) rotate(0); }
+    35% { transform: scale(1.35) rotate(-14deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  @keyframes chip-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  /* 投稿・コメントしたばかりのものが下から出てくる */
+  .post.enter, .cm.enter { animation: rise .35s ease-out; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(.6rem); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* 閲覧注意の本文を表示したとき */
+  .body.reveal { animation: fade .3s ease-out; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ポップアップ：パソコンは少し浮き上がり、スマホは下から出る */
+  dialog[open] { animation: dlg-in .22s ease-out; }
+  dialog[open]::backdrop { animation: fade .22s ease-out; }
+  @keyframes dlg-in {
+    from { opacity: 0; transform: translateY(.5rem) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (max-width: 40rem) {
+    dialog.sheet[open] { animation: sheet-in .28s cubic-bezier(.2, .8, .2, 1); }
+    @keyframes sheet-in {
+      from { transform: translateY(100%); }
+      to { transform: none; }
+    }
+  }
+
+  /* お知らせ（トースト）は下から少し上がる */
+  .toast { transform: translateY(.5rem); transition: opacity .2s, transform .2s; }
+  .toast.show { transform: none; }
+
+  /* ボタンを押した瞬間に少し沈む */
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+}

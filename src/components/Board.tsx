@@ -69,6 +69,7 @@ export function Board({
   const [loadingMore, setLoadingMore] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [revealed, setRevealed] = useState<Set<string>>(() => new Set());
+  const [fresh, setFresh] = useState<Set<string>>(() => new Set());
   const [pending, setPending] = useState<string | null>(null);
   const [sheetPost, setSheetPost] = useState<string | null>(openPostId ?? null);
   const pendingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -224,6 +225,7 @@ export function Board({
   function onPosted(p: Post) {
     toast('投稿しました');
     if (mode === 'new') {
+      setFresh((s) => new Set(s).add(p.id));
       setPosts((list) => [p, ...list]);
       requestAnimationFrame(() => {
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -259,6 +261,7 @@ export function Board({
         post={p}
         rank={ranked ? i + 1 : null}
         full={mode === 'post'}
+        fresh={fresh.has(p.id)}
         expanded={expanded.has(p.id)}
         revealed={revealed.has(p.id)}
         pending={pending}
