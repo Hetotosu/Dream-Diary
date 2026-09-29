@@ -9,6 +9,13 @@ import { LoginDialog } from '@/components/LoginDialog';
 import { BellIcon } from '@/components/icons';
 import type { ViewerInfo } from '@/lib/types';
 
+const LOGIN_ERRORS: Record<string, string> = {
+  browser:
+    'ログインできませんでした。メールのリンクは、ログインを始めたのと同じブラウザで開いてください（メールアプリの中のブラウザでは失敗することがあります）。',
+  expired: 'ログインのリンクの期限が切れているか、すでに使われています。もう一度「ログイン」からメールを送ってください。',
+  failed: 'ログインできませんでした。もう一度「ログイン」からメールを送ってください。',
+};
+
 export function AuthBox({ viewer, unread }: { viewer: ViewerInfo; unread: number }) {
   const router = useRouter();
   const toast = useToast();
@@ -18,10 +25,15 @@ export function AuthBox({ viewer, unread }: { viewer: ViewerInfo; unread: number
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get('login') === 'failed') {
-      toast('ログインできませんでした。リンクの期限が切れている可能性があります。もう一度ログインしてください。');
-      url.searchParams.delete('login');
-      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    const login = url.searchParams.get('login');
+    // Supabase がリンクの期限切れなどを #error_code=... で返すこともある
+    const hashError =
+      url.searchParams.get('error_code') ?? new URLSearchParams(url.hash.slice(1)).get('error_code');
+    const reason = login ?? (hashError ? (hashError === 'otp_expired' ? 'expired' : 'failed') : null);
+    if (reason) {
+      toast(LOGIN_ERRORS[reason] ?? LOGIN_ERRORS.failed);
+      for (const k of ['login', 'error', 'error_code', 'error_description']) url.searchParams.delete(k);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search);
     }
   }, [toast]);
 

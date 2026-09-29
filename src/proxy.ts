@@ -21,6 +21,17 @@ export async function proxy(request: NextRequest) {
   const issued = current && CLIENT_ID_RE.test(current) ? null : newClientId();
   if (issued) request.cookies.set(CLIENT_ID_COOKIE, issued);
 
+  // ログインのリンクが /auth/callback 以外（Site URL など）に戻ってきたときは、callback に回す
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname !== '/auth/callback' && (searchParams.has('code') || searchParams.has('token_hash'))) {
+    const to = request.nextUrl.clone();
+    to.pathname = '/auth/callback';
+    if (!to.searchParams.has('next')) to.searchParams.set('next', pathname);
+    const redirect = NextResponse.redirect(to);
+    if (issued) setClientCookie(redirect, issued);
+    return redirect;
+  }
+
   let response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,16 +53,18 @@ export async function proxy(request: NextRequest) {
     await supabase.auth.getClaims();
   }
 
-  if (issued) {
-    response.cookies.set(CLIENT_ID_COOKIE, issued, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 400,
-    });
-  }
+  if (issued) setClientCookie(response, issued);
   return response;
+}
+
+function setClientCookie(response: NextResponse, value: string) {
+  response.cookies.set(CLIENT_ID_COOKIE, value, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 400,
+  });
 }
 
 export const config = {

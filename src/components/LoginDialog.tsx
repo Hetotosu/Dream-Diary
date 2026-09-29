@@ -53,7 +53,12 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
     });
     setBusy(false);
     if (error) {
-      setErr('メールを送れませんでした。少し時間をおいてから、もう一度試してください。');
+      const limited = error.status === 429 || /rate limit/i.test(error.message);
+      setErr(
+        limited
+          ? 'メールの送信回数の上限に達しました。1時間ほど待ってから、もう一度試してください。すでに届いているメールがあれば、そのリンクを使えます。'
+          : 'メールを送れませんでした。少し時間をおいてから、もう一度試してください。',
+      );
       return;
     }
     setSent(true);
@@ -86,6 +91,7 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
           <>
             <p className="sent">
               {email.trim()} にログイン用のリンクを送りました。メールを開いてリンクを押してください。
+              リンクは、このブラウザで開いてください。
             </p>
             <div className="form-actions">
               <button type="button" className="btn primary" onClick={onClose}>

@@ -24,16 +24,23 @@ export async function GET(request: NextRequest) {
   const supabase = await createAuthClient();
   let userId: string | null = null;
 
-  if (code) {
+  let reason = 'failed';
+  if (searchParams.get('error_code') === 'otp_expired') {
+    reason = 'expired';
+  } else if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) userId = data.user?.id ?? null;
+    // リンクを別のブラウザで開くと、ログインを始めたときの情報（code_verifier）がなくて失敗する
+    else if (/code verifier|code_verifier/i.test(error.message)) reason = 'browser';
+    else console.error('exchangeCodeForSession', error.message);
   } else if (tokenHash && type) {
     const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) userId = data.user?.id ?? null;
+    else reason = 'expired';
   }
 
   if (!userId) {
-    return NextResponse.redirect(new URL('/?login=failed', origin));
+    return NextResponse.redirect(new URL(`/?login=${reason}`, origin));
   }
 
   const { data: profile } = await adminDb().from('profiles').select('username').eq('id', userId).maybeSingle();
