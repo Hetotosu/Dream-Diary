@@ -8,6 +8,7 @@ import { Avatar, avatarKey } from '@/components/Avatar';
 import { CloseIcon, MoonIcon } from '@/components/icons';
 import { TimeAgo } from '@/components/TimeAgo';
 import { useToast } from '@/components/Toast';
+import { pop } from '@/lib/pop';
 import { clean, LIMITS } from '@/lib/validate';
 import { ANON_NAME, type Comment, type ViewerInfo } from '@/lib/types';
 
@@ -311,7 +312,7 @@ export function CommentSheet({ postId, viewer, onClose, onCountChange, onPostGon
     const replyMeaningful = !!clean(replyText) && clean(replyText) !== prefix;
 
     return (
-      <li className="cm" key={c.id}>
+      <li className={`cm${tmp ? ' enter' : ''}`} key={c.id}>
         <Avatar name={c.name} colorKey={avatarKey(c)} size={isReply ? 'sm' : undefined} />
         <div className="cm-main">
           <div className="cm-meta">
@@ -339,7 +340,10 @@ export function CommentSheet({ postId, viewer, onClose, onCountChange, onPostGon
               className="clike"
               aria-pressed={c.liked}
               aria-label={`いいね（${c.likeCount}）`}
-              onClick={() => like(c)}
+              onClick={(e) => {
+                if (!c.liked) pop(e.currentTarget);
+                like(c);
+              }}
               disabled={tmp}
             >
               <MoonIcon />

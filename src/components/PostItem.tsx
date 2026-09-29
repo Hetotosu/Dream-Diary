@@ -7,6 +7,7 @@ import { Avatar, avatarKey } from '@/components/Avatar';
 import { BubbleIcon, MoonIcon } from '@/components/icons';
 import { PostForm } from '@/components/PostForm';
 import { TimeAgo } from '@/components/TimeAgo';
+import { pop } from '@/lib/pop';
 import { EDIT_WINDOW_MS, type Post } from '@/lib/types';
 
 type Props = {
@@ -14,6 +15,8 @@ type Props = {
   rank: number | null;
   /** 本文を最初から全部出す（投稿ページ） */
   full?: boolean;
+  /** いま投稿されたばかり（出てくる動きを付ける） */
+  fresh?: boolean;
   expanded: boolean;
   revealed: boolean;
   pending: string | null;
@@ -52,14 +55,14 @@ function useEditable(post: Post): boolean {
 }
 
 export function PostItem(props: Props) {
-  const { post: p, rank, full, expanded, revealed, pending, isAdmin } = props;
+  const { post: p, rank, full, fresh, expanded, revealed, pending, isAdmin } = props;
   const [editing, setEditing] = useState(false);
   const editable = useEditable(p);
   const long = !full && (p.body.length > 110 || p.body.split('\n').length > 4);
   const covered = p.sensitive && !revealed;
 
   return (
-    <li className={`post${rank !== null ? ' ranked' : ''}`}>
+    <li className={`post${rank !== null ? ' ranked' : ''}${fresh ? ' enter' : ''}`}>
       {rank !== null && (
         <div className={`rank${rank <= 3 ? ' top' : ''}`} aria-label={`${rank}位`}>
           {rank}
@@ -71,7 +74,10 @@ export function PostItem(props: Props) {
         aria-pressed={p.liked}
         aria-label={`いいね（${p.likeCount}）`}
         title={p.liked ? 'いいねを取り消す' : 'いいね'}
-        onClick={props.onLike}
+        onClick={(e) => {
+          if (!p.liked) pop(e.currentTarget);
+          props.onLike();
+        }}
       >
         <MoonIcon />
         <span className="num">{p.likeCount}</span>
@@ -126,7 +132,7 @@ export function PostItem(props: Props) {
                 </button>
               </div>
             ) : (
-              <p className={`body${long && !expanded ? ' clamped' : ''}`}>{p.body}</p>
+              <p className={`body${long && !expanded ? ' clamped' : ''}${p.sensitive ? ' reveal' : ''}`}>{p.body}</p>
             )}
             {p.tags.length > 0 && (
               <ul className="tags" aria-label="タグ">
@@ -156,7 +162,10 @@ export function PostItem(props: Props) {
             aria-pressed={p.samed}
             aria-label={`私も見た（${p.sameCount}）`}
             title={p.samed ? '「私も見た」を取り消す' : '同じような夢を見たことがある'}
-            onClick={props.onSame}
+            onClick={(e) => {
+              if (!p.samed) pop(e.currentTarget);
+              props.onSame();
+            }}
           >
             私も見た <span className="num">{p.sameCount}</span>
           </button>
