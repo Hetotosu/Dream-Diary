@@ -49,7 +49,7 @@ export function PostForm({
     body: initial?.body ?? '',
     tags: initial?.tags ?? [],
     sensitive: initial?.sensitive ?? false,
-    dreamedOn: initial?.dreamedOn ?? todayJst(),
+    dreamedOn: initial?.dreamedOn ?? '',
   });
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
@@ -176,7 +176,7 @@ export function PostForm({
       <div className="field-row">
         <div className="field">
           <label htmlFor={`${id}Date`}>
-            見た日 <span className="hint">（わからなければ空欄）</span>
+            見た日 <span className="hint">（任意）</span>
           </label>
           <input
             ref={refs.dreamedOn}
@@ -189,6 +189,24 @@ export function PostForm({
             aria-invalid={errors.dreamedOn ? true : undefined}
             aria-describedby={`${id}DateErr`}
           />
+          {/* スマホの日付入力は空欄に戻せないことが多いので、ボタンでも選べるようにする */}
+          <div className="date-quick">
+            <button type="button" onClick={() => set('dreamedOn', todayJst())} aria-pressed={v.dreamedOn === todayJst()}>
+              今日
+            </button>
+            <button
+              type="button"
+              onClick={() => set('dreamedOn', todayJst(Date.now() - 86_400_000))}
+              aria-pressed={v.dreamedOn === todayJst(Date.now() - 86_400_000)}
+            >
+              昨日
+            </button>
+            {v.dreamedOn && (
+              <button type="button" onClick={() => set('dreamedOn', '')}>
+                日付を消す
+              </button>
+            )}
+          </div>
           <p className="err" id={`${id}DateErr`} role="alert">
             {errors.dreamedOn}
           </p>
