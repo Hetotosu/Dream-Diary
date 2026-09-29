@@ -9,10 +9,15 @@ export async function generateMetadata({ params }: PageProps<'/p/[id]'>): Promis
   const { id } = await params;
   const post = isUuid(id) ? await getPublicPost(id) : null;
   if (!post) return { title: '投稿が見つかりません' };
-  const description = post.sensitive ? '閲覧注意の夢です。' : `${post.name} さんが見た夢`;
+  // 検索結果に出る説明文。閲覧注意の投稿は本文を載せない
+  const excerpt = post.body.replace(/\s+/g, ' ').slice(0, 110);
+  const description = post.sensitive
+    ? `${post.name} さんが見た夢（閲覧注意）｜ゆめ掲示板`
+    : `${excerpt}${post.body.length > 110 ? '…' : ''}`;
   return {
     title: post.title,
     description,
+    alternates: { canonical: `/p/${id}` },
     openGraph: { title: post.title, description, type: 'article', siteName: 'ゆめ掲示板' },
     twitter: { card: 'summary_large_image', title: post.title, description },
   };

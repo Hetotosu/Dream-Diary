@@ -135,14 +135,16 @@ export async function getPost(viewer: Viewer, id: string): Promise<Post | null> 
 }
 
 /** 共有用の画像やタイトル用。閲覧者に関係なく、公開されている投稿だけ */
-export async function getPublicPost(id: string): Promise<{ title: string; name: string; sensitive: boolean } | null> {
+export async function getPublicPost(
+  id: string,
+): Promise<{ title: string; name: string; sensitive: boolean; body: string } | null> {
   const { data } = await adminDb()
     .from('posts')
-    .select('title, display_name, sensitive')
+    .select('title, display_name, sensitive, body')
     .eq('id', id)
     .eq('hidden', false)
     .maybeSingle();
-  return data ? { title: data.title, name: data.display_name, sensitive: data.sensitive } : null;
+  return data ? { title: data.title, name: data.display_name, sensitive: data.sensitive, body: data.body } : null;
 }
 
 export async function listComments(viewer: Viewer, postId: string): Promise<Comment[]> {

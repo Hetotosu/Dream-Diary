@@ -5,7 +5,10 @@ import { parsePeriod, parseRankBy } from '@/lib/types';
 import { getViewer, toViewerInfo } from '@/lib/viewer';
 import { isUuid } from '@/lib/validate';
 
-export const metadata: Metadata = { title: 'ランキング' };
+export const metadata: Metadata = {
+  title: '夢のランキング',
+  description: 'ゆめ掲示板で、いいねや「私も見た」が多かった夢のランキングです。',
+};
 
 export default async function Ranking({ searchParams }: PageProps<'/ranking'>) {
   const sp = await searchParams;

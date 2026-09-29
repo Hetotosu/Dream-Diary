@@ -5,7 +5,8 @@ import { isTag } from '@/lib/tags';
 import { getViewer, toViewerInfo } from '@/lib/viewer';
 import { clean, isUuid } from '@/lib/validate';
 
-export const metadata: Metadata = { title: '検索' };
+// 検索結果は内容が毎回変わるので、検索エンジンには載せない（リンクはたどってよい）
+export const metadata: Metadata = { title: '検索', robots: { index: false, follow: true } };
 
 export default async function Search({ searchParams }: PageProps<'/search'>) {
   const sp = await searchParams;
