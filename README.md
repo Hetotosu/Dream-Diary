@@ -22,7 +22,7 @@
    - Site URL：`http://localhost:3000`（本番では本番の URL）
    - Redirect URLs：`http://localhost:3000/auth/callback` と本番の `https://<ドメイン>/auth/callback`
 5. Google ログインも使うなら **Authentication → Providers → Google** を設定し、`.env.local` で `NEXT_PUBLIC_GOOGLE_LOGIN=true` にする
-6. `src/lib/site.ts` の運営者名・問い合わせ先・制定日を書き換える（利用規約とプライバシーポリシーに出ます）
+6. 運営者名・問い合わせフォーム・制定日は `src/lib/site.ts` にあります（利用規約・プライバシーポリシー・フッターに出ます）
 7. `.env.example` を `.env.local` にコピーして値を入れる（`.env.local` はコミットしない）
 
    | 変数 | 内容 |

@@ -59,7 +59,13 @@ export default function Terms() {
       <p>この規約は日本の法律に従います。本サービスについて争いが起きたときは、運営者の所在地を管轄する裁判所を第一審の専属的な合意管轄裁判所とします。</p>
 
       <h3>問い合わせ</h3>
-      <p>{SITE.contact}</p>
+      <p>
+        次のフォームから送ってください。
+        <br />
+        <a href={SITE.contactUrl} target="_blank" rel="noopener noreferrer">
+          お問い合わせフォーム
+        </a>
+      </p>
 
       <p className="fine">{SITE.effectiveDate} 制定</p>
     </main>
