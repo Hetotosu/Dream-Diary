@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { NavLink } from '@/components/NavLink';
 import { useRouter } from 'next/navigation';
 import { deletePost, loadMorePosts, mute, report, setPostLike, setPostSame } from '@/app/actions';
 import { adminHide, adminSetSensitive } from '@/app/admin/actions';
@@ -368,21 +369,21 @@ export function Board({
       {(mode === 'new' || mode === 'rank' || mode === 'search') && (
         <section className="controls" aria-label="表示の切り替え" ref={listTop}>
           <nav className="seg" aria-label="表示">
-            <Link href="/" aria-current={mode === 'new' ? 'page' : undefined} scroll={false}>
+            <NavLink href="/" aria-current={mode === 'new' ? 'page' : undefined} scroll={false}>
               新着
-            </Link>
-            <Link href={rankHref(period, rankBy)} aria-current={mode === 'rank' ? 'page' : undefined} scroll={false}>
+            </NavLink>
+            <NavLink href={rankHref(period, rankBy)} aria-current={mode === 'rank' ? 'page' : undefined} scroll={false}>
               ランキング
-            </Link>
-            <Link href="/search" aria-current={mode === 'search' ? 'page' : undefined} scroll={false}>
+            </NavLink>
+            <NavLink href="/search" aria-current={mode === 'search' ? 'page' : undefined} scroll={false}>
               検索
-            </Link>
+            </NavLink>
           </nav>
           {ranked && (
             <div className="rank-opts">
               <nav className="periods" aria-label="ランキングの期間">
                 {PERIOD_LABELS.map(([key, label]) => (
-                  <Link
+                  <NavLink
                     key={key}
                     href={rankHref(key, rankBy)}
                     aria-current={period === key ? 'page' : undefined}
@@ -390,26 +391,26 @@ export function Board({
                     replace
                   >
                     {label}
-                  </Link>
+                  </NavLink>
                 ))}
               </nav>
               <nav className="periods" aria-label="ランキングの基準">
-                <Link
+                <NavLink
                   href={rankHref(period, 'likes')}
                   aria-current={rankBy === 'likes' ? 'page' : undefined}
                   scroll={false}
                   replace
                 >
                   いいね順
-                </Link>
-                <Link
+                </NavLink>
+                <NavLink
                   href={rankHref(period, 'sames')}
                   aria-current={rankBy === 'sames' ? 'page' : undefined}
                   scroll={false}
                   replace
                 >
                   私も見た順
-                </Link>
+                </NavLink>
               </nav>
             </div>
           )}

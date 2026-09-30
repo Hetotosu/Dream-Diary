@@ -509,3 +509,17 @@ a { color: inherit; }
   /* ボタンを押した瞬間に少し沈む */
   .btn:active:not(:disabled) { transform: translateY(1px); }
 }
+
+/* タブ・絞り込みを押した直後：押したものを選ばれた見た目にし、一覧を薄くして読み込み中と分かるようにする */
+.pending-mark { display: none; }
+.seg a:has(.is-pending) { color: var(--ink); border-bottom-color: var(--moon); }
+.periods a:has(.is-pending), .tag-pick a:has(.is-pending) { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
+.controls:has(.is-pending) ~ main { opacity: .45; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .controls ~ main { transition: opacity .15s; }
+}
+.seg:has(.is-pending) a[aria-current="page"]:not(:has(.is-pending)) { color: var(--muted); border-bottom-color: transparent; }
+.periods:has(.is-pending) a[aria-current="page"]:not(:has(.is-pending)),
+.tag-pick:has(.is-pending) a[aria-current="page"]:not(:has(.is-pending)) {
+  background: transparent; color: var(--ink); border-color: var(--field-line);
+}

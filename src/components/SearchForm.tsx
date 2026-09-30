@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { NavLink } from '@/components/NavLink';
 import { useRouter } from 'next/navigation';
 import { TAGS } from '@/lib/tags';
 
@@ -45,7 +45,7 @@ export function SearchForm({ query, tag }: { query: string; tag: string | null }
       </form>
       <nav className="tag-pick" aria-label="タグで絞り込む">
         {TAGS.map((t) => (
-          <Link
+          <NavLink
             key={t}
             href={href(query, tag === t ? null : t)}
             aria-current={tag === t ? 'page' : undefined}
@@ -53,7 +53,7 @@ export function SearchForm({ query, tag }: { query: string; tag: string | null }
             replace
           >
             #{t}
-          </Link>
+          </NavLink>
         ))}
       </nav>
     </div>
